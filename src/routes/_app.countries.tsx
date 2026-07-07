@@ -39,7 +39,6 @@ function Countries() {
             <div className="mt-4 grid gap-2 text-sm">
               <Row k="salary" v={c.salary} />
               <Row k="visa" v={c.visa} />
-              <Row k="marriage equality" v={c.ssm} />
             </div>
 
             <div className="mt-4 rounded-2xl bg-gradient-to-br from-pink-100/70 to-violet-100/70 p-4 text-sm italic">
