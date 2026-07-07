@@ -65,27 +65,51 @@ export const defaultProfile = (userId: string): AppProfile => ({
   }
 });
 
-// ── DB helpers ────────────────────────────────────────────────────────────────
+// ── Resilient DB helpers (Supports silent local fallback on network errors) ────────────────────────────────
 
 export async function fetchProfile(userId: string): Promise<AppProfile> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
 
-  if (error || !data) {
-    // First time — create it
-    const profile = defaultProfile(userId);
-    await upsertProfile(profile);
-    return profile;
+    if (!error && data) {
+      // Sync local backup too
+      localStorage.setItem(`saksham_profile_${userId}`, JSON.stringify(data));
+      return data as AppProfile;
+    }
+  } catch (e) {
+    console.warn("Supabase fetch failed, trying local storage fallback:", e);
   }
-  return data as AppProfile;
+
+  // Local Storage fallback on network failure or if row doesn't exist
+  const localData = localStorage.getItem(`saksham_profile_${userId}`);
+  if (localData) {
+    try {
+      return JSON.parse(localData) as AppProfile;
+    } catch (e) {
+      console.error("Local profile backup is corrupted:", e);
+    }
+  }
+
+  // First time — create and save locally & remotely
+  const profile = defaultProfile(userId);
+  await upsertProfile(profile);
+  return profile;
 }
 
 export async function upsertProfile(profile: AppProfile): Promise<void> {
-  const { error } = await supabase
-    .from("profiles")
-    .upsert({ ...profile, updated_at: new Date().toISOString() });
-  if (error) console.error("upsertProfile error:", error);
+  // Always update local cache immediately for speed and backup
+  localStorage.setItem(`saksham_profile_${profile.id}`, JSON.stringify(profile));
+
+  try {
+    const { error } = await supabase
+      .from("profiles")
+      .upsert({ ...profile, updated_at: new Date().toISOString() });
+    if (error) console.error("upsertProfile error:", error);
+  } catch (e) {
+    console.warn("Supabase save failed (running offline), progress saved locally:", e);
+  }
 }

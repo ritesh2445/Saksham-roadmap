@@ -59,6 +59,8 @@ function Dashboard() {
   const currentWeek = Math.min(52, Math.max(1, Math.floor(days / 7) + 1));
   const next = ROADMAP[currentWeek - 1];
 
+  const isOffline = typeof window !== "undefined" && localStorage.getItem("saksham_local_fallback") === "true";
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -70,6 +72,12 @@ function Dashboard() {
           open today's week →
         </Link>
       </div>
+
+      {isOffline && (
+        <div className="rounded-2xl bg-amber-100/90 border border-amber-300 p-4 text-xs font-semibold text-amber-800 shadow-soft animate-pop no-print">
+          ⚠️ Running in Offline Mode: Your Supabase database is currently unreachable (it may be paused or offline). Progress is being saved locally in your browser.
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Streak" value={`${s.streak} 🔥`} hint="keep showing up" gradient="bg-gradient-to-br from-pink-200/80 to-rose-200/80" />
