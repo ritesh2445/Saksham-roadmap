@@ -53,8 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function loginWithPassword(password: string): Promise<{ success: boolean; error?: string }> {
     if (password === "I love to study") {
       try {
-        const email = "saksham@example.com";
-        const dbPassword = "saksham_universal_passkey_123!";
+        const email = "sakshamjiddewar16@gmail.com";
+        const dbPassword = "Sexyboii0405";
         
         let { data, error } = await supabase.auth.signInWithPassword({ email, password: dbPassword });
         
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (signupRes.error.message.includes("Signups not allowed") || signupRes.error.message.includes("prevent")) {
               return {
                 success: false,
-                error: "⚠️ User 'saksham@example.com' does not exist in your Supabase project, and public signups are disabled. Please go to your Supabase Dashboard (Authentication > Users > Add User), create this email with password 'saksham_universal_passkey_123!', check 'Auto-confirm user email', and try again."
+                error: "⚠️ User 'sakshamjiddewar16@gmail.com' does not exist in your Supabase project, and public signups are disabled. Please go to your Supabase Dashboard (Authentication > Users > Add User), create this email with password 'Sexyboii0405', check 'Auto-confirm user email', and try again."
               };
             }
             return { success: false, error: `Sign up failed: ${signupRes.error.message}` };
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error || !data.session?.user) {
           console.error("Supabase authentication error:", error);
           if (error?.message?.includes("Invalid login credentials")) {
-            return { success: false, error: "Incorrect passkey credentials in Supabase. Please verify user 'saksham@example.com' has password 'saksham_universal_passkey_123!'." };
+            return { success: false, error: "Incorrect passkey credentials in Supabase. Please verify user 'sakshamjiddewar16@gmail.com' has password 'Sexyboii0405'." };
           }
           return { success: false, error: error?.message || "Failed to create a valid Supabase session" };
         }
