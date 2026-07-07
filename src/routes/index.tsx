@@ -26,11 +26,11 @@ function AuthPage() {
     e.preventDefault();
     setError("");
 
-    const success = await loginWithPassword(passkey);
-    if (success) {
+    const res = await loginWithPassword(passkey);
+    if (res.success) {
       navigate({ to: "/dashboard" });
     } else {
-      setError("Incorrect passkey, try again sweetheart ♡");
+      setError(res.error || "Incorrect passkey, try again sweetheart ♡");
     }
   }
 

@@ -6,13 +6,13 @@ import { bootstrapProfile, clearProfileCache } from "@/lib/store";
 type AuthCtx = {
   user: User | null;
   loading: boolean;
-  loginWithPassword: (password: string) => Promise<boolean>;
+  loginWithPassword: (password: string) => Promise<{ success: boolean; error?: string }>;
 };
 
 const AuthContext = createContext<AuthCtx>({
   user: null,
   loading: true,
-  loginWithPassword: async () => false,
+  loginWithPassword: async () => ({ success: false }),
 });
 
 export function useAuthContext() {
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  async function loginWithPassword(password: string): Promise<boolean> {
+  async function loginWithPassword(password: string): Promise<{ success: boolean; error?: string }> {
     if (password === "I love to study") {
       try {
         const email = "saksham@example.com";
@@ -55,13 +55,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         let { data, error } = await supabase.auth.signInWithPassword({ email, password: dbPassword });
         
-        // If login fails (user does not exist yet), attempt to sign up
-        if (error && (error.message.includes("Invalid login credentials") || error.message.includes("Email not confirmed"))) {
+        // If login fails because user doesn't exist, attempt auto-signup
+        if (error && (error.message.includes("Invalid login credentials") || error.message.includes("Email not confirmed") || error.message.includes("User not found"))) {
+          console.log("Universal account not found, attempting auto signup...");
           const signupRes = await supabase.auth.signUp({ email, password: dbPassword });
           
           if (signupRes.error) {
             console.error("Supabase automatic sign up error:", signupRes.error);
-            return false;
+            return { success: false, error: `Sign up failed: ${signupRes.error.message}` };
           }
           
           // Retry signing in after signup
@@ -72,16 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (error || !data.session?.user) {
           console.error("Supabase authentication error:", error);
-          return false;
+          return { success: false, error: error?.message || "Failed to create a valid Supabase session" };
         }
 
-        return true;
-      } catch (err) {
+        return { success: true };
+      } catch (err: any) {
         console.error("Universal login flow failed:", err);
-        return false;
+        return { success: false, error: err.message || "An unexpected error occurred during auth flow" };
       }
     }
-    return false;
+    return { success: false, error: "Incorrect passkey" };
   }
 
   return (
